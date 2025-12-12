@@ -394,7 +394,7 @@
             <h2>登录</h2>
             <div>
                 <label for="user-type">用户类型：</label>
-                <select id="user-type">
+                <select id="user-type" onchange="toggleGroupSelect()">
                     <option value="group">小组</option>
                     <option value="teacher">教师</option>
                 </select>
@@ -590,6 +590,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyDeps30KjkP19CYwj8jMjC7y0-bhqAovNI",
             authDomain: "physics-classroom-44e9a.firebaseapp.com",
+            databaseURL: "https://physics-classroom-44e9a-default-rtdb.firebaseio.com",
             projectId: "physics-classroom-44e9a",
             storageBucket: "physics-classroom-44e9a.firebasestorage.app",
             messagingSenderId: "901400536434",
@@ -607,48 +608,87 @@
         
         // 初始化数据
         function initData() {
-            // 从Firebase获取数据
-            database.ref('groupData').once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    groupData = snapshot.val();
-                } else {
-                    // 初始化默认数据结构
-                    groupData = {
-                        groups: {}
-                    };
-                    
-                    // 创建8个小组
-                    for (let i = 1; i <= 8; i++) {
-                        groupData.groups[i] = {
-                            report: null,
-                            video: null,
-                            scores: {
-                                ai: 0,
-                                aiDetails: {
-                                    theoreticalKnowledge: 0,
-                                    experimentalDesign: 0,
-                                    dataAnalysis: 0,
-                                    conclusion: 0,
-                                    innovation: 0
-                                },
-                                teacher: 0,
-                                selfAssessment: 0,
-                                peerReviews: {},
-                                final: 0
+            try {
+                // 从Firebase获取数据
+                database.ref('groupData').once('value')
+                    .then((snapshot) => {
+                        console.log('Firebase数据获取成功:', snapshot.val() ? '有数据' : '无数据');
+                        if (snapshot.exists()) {
+                            groupData = snapshot.val();
+                        } else {
+                            // 初始化默认数据结构
+                            groupData = {
+                                groups: {}
+                            };
+                            
+                            // 创建8个小组
+                            for (let i = 1; i <= 8; i++) {
+                                groupData.groups[i] = {
+                                    report: null,
+                                    video: null,
+                                    scores: {
+                                        ai: 0,
+                                        aiDetails: {
+                                            theoreticalKnowledge: 0,
+                                            experimentalDesign: 0,
+                                            dataAnalysis: 0,
+                                            conclusion: 0,
+                                            innovation: 0
+                                        },
+                                        teacher: 0,
+                                        selfAssessment: 0,
+                                        peerReviews: {},
+                                        final: 0
+                                    }
+                                };
                             }
+                            
+                            // 保存到Firebase
+                            return database.ref('groupData').set(groupData);
+                        }
+                    })
+                    .then(() => {
+                        // 生成其他小组的内容
+                        generateGroupContent();
+                        
+                        // 加载已有数据
+                        loadData();
+                        console.log('数据初始化完成');
+                    })
+                    .catch((error) => {
+                        console.error('Firebase数据操作失败:', error);
+                        alert('数据初始化失败: ' + error.message);
+                        // 即使Firebase连接失败，也要继续显示界面，使用本地默认数据
+                        groupData = {
+                            groups: {}
                         };
-                    }
-                    
-                    // 保存到Firebase
-                    database.ref('groupData').set(groupData);
-                }
-                
-                // 生成其他小组的内容
-                generateGroupContent();
-                
-                // 加载已有数据
-                loadData();
-            });
+                        for (let i = 1; i <= 8; i++) {
+                            groupData.groups[i] = {
+                                report: null,
+                                video: null,
+                                scores: {
+                                    ai: 0,
+                                    aiDetails: {
+                                        theoreticalKnowledge: 0,
+                                        experimentalDesign: 0,
+                                        dataAnalysis: 0,
+                                        conclusion: 0,
+                                        innovation: 0
+                                    },
+                                    teacher: 0,
+                                    selfAssessment: 0,
+                                    peerReviews: {},
+                                    final: 0
+                                }
+                            };
+                        }
+                        generateGroupContent();
+                        loadData();
+                    });
+            } catch (error) {
+                console.error('初始化数据时发生错误:', error);
+                alert('初始化数据时发生错误: ' + error.message);
+            }
         }
         
         // 登录
@@ -680,6 +720,13 @@
             currentUser = null;
             document.getElementById('login-section').style.display = 'block';
             document.getElementById('main-content').style.display = 'none';
+        }
+        
+        // 切换小组选择区域的显示/隐藏
+        function toggleGroupSelect() {
+            const userType = document.getElementById('user-type').value;
+            const groupSelect = document.getElementById('group-select');
+            groupSelect.style.display = userType === 'group' ? 'block' : 'none';
         }
         
         // 动态生成其他小组的内容
