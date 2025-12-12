@@ -609,14 +609,82 @@
         // 初始化数据
         function initData() {
             try {
-                // 从Firebase获取数据
+                // 优先从Firebase获取数据
                 database.ref('groupData').once('value')
                     .then((snapshot) => {
                         console.log('Firebase数据获取成功:', snapshot.val() ? '有数据' : '无数据');
                         if (snapshot.exists()) {
                             groupData = snapshot.val();
+                            // 同时保存到localStorage作为备份
+                            localStorage.setItem('groupData', JSON.stringify(groupData));
                         } else {
-                            // 初始化默认数据结构
+                            // Firebase没有数据，尝试从localStorage获取
+                            const savedData = localStorage.getItem('groupData');
+                            if (savedData) {
+                                console.log('使用localStorage中的数据');
+                                groupData = JSON.parse(savedData);
+                                // 同步到Firebase
+                                return database.ref('groupData').set(groupData);
+                            } else {
+                                // 初始化默认数据结构
+                                console.log('初始化默认数据');
+                                groupData = {
+                                    groups: {}
+                                };
+                                
+                                // 创建8个小组
+                                for (let i = 1; i <= 8; i++) {
+                                    groupData.groups[i] = {
+                                        report: null,
+                                        video: null,
+                                        scores: {
+                                            ai: 0,
+                                            aiDetails: {
+                                                theoreticalKnowledge: 0,
+                                                experimentalDesign: 0,
+                                                dataAnalysis: 0,
+                                                conclusion: 0,
+                                                innovation: 0
+                                            },
+                                            teacher: 0,
+                                            selfAssessment: 0,
+                                            peerReviews: {},
+                                            final: 0
+                                        }
+                                    };
+                                }
+                                
+                                // 保存到Firebase和localStorage
+                                localStorage.setItem('groupData', JSON.stringify(groupData));
+                                return database.ref('groupData').set(groupData);
+                            }
+                        }
+                    })
+                    .then(() => {
+                        // 生成其他小组的内容
+                        generateGroupContent();
+                        
+                        // 加载已有数据
+                        loadData();
+                        console.log('数据初始化完成');
+                    })
+                    .catch((error) => {
+                        console.error('Firebase数据操作失败:', error);
+                        
+                        // Firebase连接失败，使用localStorage作为后备
+                        console.log('尝试使用localStorage作为后备');
+                        const savedData = localStorage.getItem('groupData');
+                        
+                        if (savedData) {
+                            // 使用localStorage中的数据
+                            groupData = JSON.parse(savedData);
+                            generateGroupContent();
+                            loadData();
+                            console.log('使用localStorage数据初始化完成');
+                            alert('当前处于离线模式，数据将保存在本地浏览器中');
+                        } else {
+                            // 完全没有数据，初始化默认数据
+                            console.log('初始化本地默认数据');
                             groupData = {
                                 groups: {}
                             };
@@ -643,48 +711,14 @@
                                 };
                             }
                             
-                            // 保存到Firebase
-                            return database.ref('groupData').set(groupData);
+                            // 保存到localStorage
+                            localStorage.setItem('groupData', JSON.stringify(groupData));
+                            generateGroupContent();
+                            loadData();
+                            console.log('本地默认数据初始化完成');
+                            alert('当前处于离线模式，数据将保存在本地浏览器中');
                         }
-                    })
-                    .then(() => {
-                        // 生成其他小组的内容
-                        generateGroupContent();
-                        
-                        // 加载已有数据
-                        loadData();
-                        console.log('数据初始化完成');
-                    })
-                    .catch((error) => {
-                        console.error('Firebase数据操作失败:', error);
-                        alert('数据初始化失败: ' + error.message);
-                        // 即使Firebase连接失败，也要继续显示界面，使用本地默认数据
-                        groupData = {
-                            groups: {}
-                        };
-                        for (let i = 1; i <= 8; i++) {
-                            groupData.groups[i] = {
-                                report: null,
-                                video: null,
-                                scores: {
-                                    ai: 0,
-                                    aiDetails: {
-                                        theoreticalKnowledge: 0,
-                                        experimentalDesign: 0,
-                                        dataAnalysis: 0,
-                                        conclusion: 0,
-                                        innovation: 0
-                                    },
-                                    teacher: 0,
-                                    selfAssessment: 0,
-                                    peerReviews: {},
-                                    final: 0
-                                }
-                            };
-                        }
-                        generateGroupContent();
-                        loadData();
-                    });
+                });
             } catch (error) {
                 console.error('初始化数据时发生错误:', error);
                 alert('初始化数据时发生错误: ' + error.message);
@@ -693,26 +727,54 @@
         
         // 登录
         function login() {
-            const userType = document.getElementById('user-type').value;
-            const groupNumber = userType === 'group' ? document.getElementById('group-number').value : null;
-            
-            currentUser = {
-                type: userType,
-                name: userType === 'group' ? `第${groupNumber}组` : '教师',
-                group: groupNumber
-            };
-            
-            // 隐藏登录界面，显示主内容
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-            
-            // 更新用户信息显示
-            document.getElementById('current-user-name').textContent = currentUser.name;
-            document.getElementById('current-user-type').textContent = currentUser.type === 'group' ? '小组' : '教师';
-            document.getElementById('current-group').textContent = currentUser.type === 'group' ? `第${currentUser.group}组` : '教师';
-            
-            // 初始化数据
-            initData();
+            try {
+                console.log('登录函数开始执行');
+                
+                // 获取用户类型
+                const userTypeSelect = document.getElementById('user-type');
+                console.log('用户类型选择器:', userTypeSelect);
+                const userType = userTypeSelect.value;
+                console.log('用户类型:', userType);
+                
+                // 获取小组编号
+                let groupNumber = null;
+                if (userType === 'group') {
+                    const groupSelect = document.getElementById('group-number');
+                    console.log('小组选择器:', groupSelect);
+                    groupNumber = groupSelect.value;
+                    console.log('小组编号:', groupNumber);
+                }
+                
+                // 创建当前用户对象
+                currentUser = {
+                    type: userType,
+                    name: userType === 'group' ? `第${groupNumber}组` : '教师',
+                    group: groupNumber
+                };
+                console.log('当前用户:', currentUser);
+                
+                // 隐藏登录界面，显示主内容
+                const loginSection = document.getElementById('login-section');
+                const mainContent = document.getElementById('main-content');
+                console.log('登录界面:', loginSection);
+                console.log('主内容:', mainContent);
+                
+                loginSection.style.display = 'none';
+                mainContent.style.display = 'block';
+                
+                // 更新用户信息显示
+                document.getElementById('current-user-name').textContent = currentUser.name;
+                document.getElementById('current-user-type').textContent = currentUser.type === 'group' ? '小组' : '教师';
+                document.getElementById('current-group').textContent = currentUser.type === 'group' ? `第${currentUser.group}组` : '教师';
+                
+                // 初始化数据
+                console.log('开始初始化数据');
+                initData();
+                console.log('登录函数执行完成');
+            } catch (error) {
+                console.error('登录过程中发生错误:', error);
+                alert('登录失败: ' + error.message);
+            }
         }
         
         // 退出登录
