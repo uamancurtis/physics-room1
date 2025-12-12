@@ -651,6 +651,39 @@
             } catch (error) {
                 console.error('初始化数据时发生错误:', error);
                 alert('初始化数据时发生错误: ' + error.message);
+                // 即使发生错误，也要尝试生成内容和加载数据
+                try {
+                    // 如果groupData未初始化，初始化默认数据
+                    if (!groupData.groups) {
+                        groupData = {
+                            groups: {}
+                        };
+                        for (let i = 1; i <= 8; i++) {
+                            groupData.groups[i] = {
+                                report: null,
+                                video: null,
+                                scores: {
+                                    ai: 0,
+                                    aiDetails: {
+                                        theoreticalKnowledge: 0,
+                                        experimentalDesign: 0,
+                                        dataAnalysis: 0,
+                                        conclusion: 0,
+                                        innovation: 0
+                                    },
+                                    teacher: 0,
+                                    selfAssessment: 0,
+                                    peerReviews: {},
+                                    final: 0
+                                }
+                            };
+                        }
+                    }
+                    generateGroupContent();
+                    loadData();
+                } catch (e) {
+                    console.error('生成内容或加载数据失败:', e);
+                }
             }
         }
 
@@ -661,6 +694,11 @@
 
                 // 获取用户类型
                 const userTypeSelect = document.getElementById('user-type');
+                if (!userTypeSelect) {
+                    console.error('找不到用户类型选择器');
+                    alert('登录失败: 找不到用户类型选择器');
+                    return;
+                }
                 const userType = userTypeSelect.value;
                 console.log('用户类型:', userType);
 
@@ -668,6 +706,11 @@
                 let groupNumber = null;
                 if (userType === 'group') {
                     const groupSelect = document.getElementById('group-number');
+                    if (!groupSelect) {
+                        console.error('找不到小组编号选择器');
+                        alert('登录失败: 找不到小组编号选择器');
+                        return;
+                    }
                     groupNumber = groupSelect.value;
                     console.log('小组编号:', groupNumber);
                 }
