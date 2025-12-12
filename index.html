@@ -731,7 +731,7 @@
                 console.log('登录函数开始执行');
                 
                 // 获取用户类型
-                const userTypeSelect = document.getElementById('user-type');
+                const userTypeSelect = document.getElementById('user-type-select');
                 console.log('用户类型选择器:', userTypeSelect);
                 const userType = userTypeSelect.value;
                 console.log('用户类型:', userType);
@@ -739,7 +739,7 @@
                 // 获取小组编号
                 let groupNumber = null;
                 if (userType === 'group') {
-                    const groupSelect = document.getElementById('group-number');
+                    const groupSelect = document.getElementById('group-select');
                     console.log('小组选择器:', groupSelect);
                     groupNumber = groupSelect.value;
                     console.log('小组编号:', groupNumber);
@@ -786,7 +786,7 @@
         
         // 切换小组选择区域的显示/隐藏
         function toggleGroupSelect() {
-            const userType = document.getElementById('user-type').value;
+            const userType = document.getElementById('user-type-select').value;
             const groupSelect = document.getElementById('group-select');
             groupSelect.style.display = userType === 'group' ? 'block' : 'none';
         }
@@ -1000,6 +1000,11 @@
         
         // AI评分
         function performAIScoring(groupNumber) {
+            // 检查用户是否已登录
+            if (!currentUser) {
+                alert('请先登录');
+                return;
+            }
             // 生成各评分细则的随机分数（85-100分）
             const aiDetails = {
                 theoreticalKnowledge: Math.floor(Math.random() * 16) + 85,
@@ -1051,6 +1056,11 @@
         
         // 保存教师评分
         function saveTeacherScore(groupNumber) {
+            // 检查用户是否已登录
+            if (!currentUser) {
+                alert('请先登录');
+                return;
+            }
             // 只有教师可以评分
             if (currentUser.type !== 'teacher') {
                 alert('只有教师可以进行教师评分');
@@ -1081,6 +1091,11 @@
         
         // 保存小组自评
         function saveSelfAssessment(groupNumber) {
+            // 检查用户是否已登录
+            if (!currentUser) {
+                alert('请先登录');
+                return;
+            }
             // 只有小组可以自评自己的组
             if (currentUser.type !== 'group' || currentUser.group !== groupNumber) {
                 alert('只有该小组可以进行自评');
@@ -1110,6 +1125,11 @@
         
         // 保存组间互评
         function savePeerReview(groupNumber) {
+            // 检查用户是否已登录
+            if (!currentUser) {
+                alert('请先登录');
+                return;
+            }
             // 小组可以对自己和其他小组打分
             if (currentUser.type !== 'group') {
                 alert('只有小组可以进行互评');
