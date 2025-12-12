@@ -7,6 +7,9 @@
     <!-- 引入第三方库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.26/mammoth.browser.min.js"></script>
+    <!-- 引入Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
     <style>
         * {
             margin: 0;
@@ -201,113 +204,184 @@
             border-radius: 4px;
         }
         
-        .material-preview .preview-label {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-        
         /* 评分区域 */
         .scoring-section {
-            margin-top: 20px;
+            margin: 20px 0;
             padding: 20px;
-            background-color: white;
-            border-radius: 8px;
             border: 1px solid #ddd;
-        }
-        
-        .scoring-box {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #eee;
             border-radius: 8px;
-            background-color: #fafafa;
+            background-color: white;
         }
         
-        .scoring-box h4 {
-            margin-bottom: 10px;
-            color: #2c3e50;
+        .score-input-group {
+            margin-bottom: 20px;
         }
         
-        .score-input {
-            width: 100px;
+        .score-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .score-input-group input {
             padding: 8px;
-            font-size: 18px;
-            text-align: center;
             border: 1px solid #bdc3c7;
             border-radius: 4px;
+            margin-right: 10px;
         }
         
-        /* 得分展示区域 */
-        .score-display {
+        .score-button {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .score-button:hover {
+            background-color: #2980b9;
+        }
+        
+        /* 最终得分显示 */
+        .final-score-display {
             margin-top: 20px;
-            padding: 20px;
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
             border-radius: 8px;
-            text-align: center;
         }
         
-        .score-value {
+        .final-score {
             font-size: 24px;
             font-weight: bold;
-            color: #007bff;
+            color: #856404;
+            margin-bottom: 10px;
         }
         
         .score-breakdown {
             display: flex;
-            justify-content: space-around;
+            flex-wrap: wrap;
             margin-top: 10px;
         }
         
         .score-item {
+            margin: 5px 15px 5px 0;
             text-align: center;
         }
         
-        /* 按钮样式 */
-        button {
+        .score-value {
+            font-weight: bold;
+            font-size: 18px;
+            color: #856404;
+        }
+        
+        /* AI评分详情 */
+        .ai-details {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover, .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            text-align: right;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        /* 排名表格样式 */
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .ranking-table th, .ranking-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .ranking-table th {
             background-color: #3498db;
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 5px;
-            transition: background-color 0.3s;
+            font-weight: bold;
         }
         
-        button:hover {
-            background-color: #2980b9;
+        .ranking-table tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
         
-        button.danger {
-            background-color: #e74c3c;
+        .ranking-table tr:hover {
+            background-color: #ddd;
         }
         
-        button.danger:hover {
-            background-color: #c0392b;
+        .top-rank td {
+            font-weight: bold;
         }
         
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .group-tabs {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .group-tab {
-                width: 80%;
-                margin-bottom: 10px;
-            }
-            
-            .score-breakdown {
-                flex-direction: column;
-            }
-            
-            .score-item {
-                margin-bottom: 10px;
-            }
+        .top-rank:nth-child(1) td {
+            background-color: #ffe4b5;
+        }
+        
+        .top-rank:nth-child(2) td {
+            background-color: #d3d3d3;
+        }
+        
+        .top-rank:nth-child(3) td {
+            background-color: #cd853f;
         }
     </style>
 </head>
@@ -319,14 +393,14 @@
         <div id="login-section">
             <h2>登录</h2>
             <div>
-                <label for="user-type">账号类型</label>
+                <label for="user-type">用户类型：</label>
                 <select id="user-type">
-                    <option value="group">小组账号</option>
-                    <option value="teacher">教师账号</option>
+                    <option value="group">小组</option>
+                    <option value="teacher">教师</option>
                 </select>
             </div>
-            <div id="group-login-section">
-                <label for="group-number">小组编号</label>
+            <div id="group-select" style="display: block;">
+                <label for="group-number">选择小组：</label>
                 <select id="group-number">
                     <option value="1">第1组</option>
                     <option value="2">第2组</option>
@@ -338,136 +412,121 @@
                     <option value="8">第8组</option>
                 </select>
             </div>
-            <button type="button" onclick="login()">登录</button>
+            <div>
+                <button class="score-button" onclick="login()">登录</button>
+            </div>
         </div>
         
         <!-- 主要内容区域 -->
-    <div id="main-content">
-        <!-- 顶部信息 -->
-        <div class="top-info">
-            <div>
-                <strong>当前用户：</strong><span id="current-user-name"></span>
-                <strong> | 用户类型：</strong><span id="current-user-type"></span>
-                <strong> | 所在小组：</strong><span id="current-group"></span>
+        <div id="main-content">
+            <!-- 顶部信息栏 -->
+            <div class="top-info">
+                <div>
+                    <strong>当前用户：</strong><span id="current-user-name"></span>
+                    <strong> | 用户类型：</strong><span id="current-user-type"></span>
+                    <strong> | 所在小组：</strong><span id="current-group"></span>
+                </div>
+                <div>
+                    <button class="score-button" onclick="logout()">退出登录</button>
+                    <button class="score-button" onclick="showRanking()">查看排名</button>
+                </div>
             </div>
-            <button type="button" onclick="logout()">退出登录</button>
-            <button type="button" onclick="showRanking()">查看排名</button>
-        </div>
-        
-        <!-- 小组选择栏 -->
-        <div class="group-tabs">
-            <button class="group-tab active" data-group="1">第1组</button>
-            <button class="group-tab" data-group="2">第2组</button>
-            <button class="group-tab" data-group="3">第3组</button>
-            <button class="group-tab" data-group="4">第4组</button>
-            <button class="group-tab" data-group="5">第5组</button>
-            <button class="group-tab" data-group="6">第6组</button>
-            <button class="group-tab" data-group="7">第7组</button>
-            <button class="group-tab" data-group="8">第8组</button>
-        </div>
+            
+            <!-- 小组选择栏 -->
+            <div class="group-tabs">
+                <button class="group-tab active" data-group="1">第1组</button>
+                <button class="group-tab" data-group="2">第2组</button>
+                <button class="group-tab" data-group="3">第3组</button>
+                <button class="group-tab" data-group="4">第4组</button>
+                <button class="group-tab" data-group="5">第5组</button>
+                <button class="group-tab" data-group="6">第6组</button>
+                <button class="group-tab" data-group="7">第7组</button>
+                <button class="group-tab" data-group="8">第8组</button>
+            </div>
             
             <!-- 小组内容区域 -->
-            <div id="group-content-container">
-                <!-- 第1组 -->
-                <div class="group-content active" data-group="1">
-                    <h2>第1组 - 实验资料</h2>
+            <div class="group-content active" data-group="1">
+                <!-- 文件上传区域 -->
+                <div class="file-upload-section">
+                    <h3>项目报告上传</h3>
+                    <div>
+                        <label for="report-file-1">选择报告文件（txt、pdf、doc、docx）：</label>
+                        <input type="file" id="report-file-1" accept=".txt,.pdf,.doc,.docx">
+                        <button class="score-button" onclick="uploadReport(1)">上传报告</button>
+                    </div>
+                    <div id="report-info-1" style="margin-top: 10px;">暂无报告</div>
+                </div>
+                
+                <div class="file-upload-section">
+                    <h3>项目演示视频上传</h3>
+                    <div>
+                        <label for="video-file-1">选择视频文件：</label>
+                        <input type="file" id="video-file-1" accept="video/*">
+                        <button class="score-button" onclick="uploadVideo(1)">上传视频</button>
+                    </div>
+                    <div id="video-preview-1" style="margin-top: 10px;">暂无视频</div>
+                </div>
+                
+                <!-- 评分区域 -->
+                <div class="scoring-section">
+                    <h3>项目评分</h3>
                     
-                    <!-- 文件上传 -->
-                    <div class="file-upload-section">
-                        <label for="report-file-1">请上传项目报告文件（支持txt、pdf、doc、docx格式）</label>
-                        <input type="file" id="report-file-1" name="report-file-1" accept=".txt,.pdf,.doc,.docx">
-                        <button type="button" onclick="uploadReport(1)">上传报告</button>
+                    <!-- AI评分 -->
+                    <div class="score-input-group">
+                        <label>AI评分 (20%)：</label>
+                        <input type="number" id="ai-score-1" readonly>
+                        <button class="score-button" onclick="performAIScoring(1)">生成AI评分</button>
+                        <div id="ai-score-details-1" class="ai-details" style="margin-top: 10px;"></div>
                     </div>
                     
-                    <!-- 视频上传 -->
-                    <div class="file-upload-section">
-                        <label for="video-file-1">请上传实验成果视频（支持mp4、mov等格式）</label>
-                        <input type="file" id="video-file-1" name="video-file-1" accept="video/*">
-                        <button type="button" onclick="uploadVideo(1)">上传视频</button>
+                    <!-- 教师评分 -->
+                    <div class="score-input-group">
+                        <label>教师评分 (30%)：</label>
+                        <input type="number" id="teacher-score-1" min="0" max="100" placeholder="0-100">
+                        <button class="score-button" onclick="saveTeacherScore(1)">保存教师评分</button>
                     </div>
                     
-                    <!-- 材料展示 -->
-                    <div class="materials-display" id="materials-display-1">
-                        <h3>已上传材料</h3>
-                        <div id="report-display-1" class="material-item">
-                            <h4>实验报告</h4>
-                            <p id="report-info-1">暂无报告</p>
-                        </div>
-                        <div id="video-display-1" class="material-item">
-                            <h4>实验成果视频</h4>
-                            <div id="video-preview-1" class="material-preview">暂无视频</div>
+                    <!-- 小组自评 -->
+                    <div class="score-input-group">
+                        <label>小组自评 (10%)：</label>
+                        <input type="number" id="self-score-1" min="0" max="100" placeholder="0-100">
+                        <button class="score-button" onclick="saveSelfAssessment(1)">保存自评</button>
+                    </div>
+                    
+                    <!-- 组间互评 -->
+                    <div class="score-input-group">
+                        <label>组间互评 (40%)：</label>
+                        <input type="number" id="peer-score-1" min="0" max="100" placeholder="0-100">
+                        <button class="score-button" onclick="savePeerReview(1)">保存互评</button>
+                        <div style="margin-top: 10px;">
+                            <label>组间互评平均分：</label>
+                            <input type="number" id="peer-average-1" readonly>
                         </div>
                     </div>
                     
-                    <!-- 评分区域 -->
-                    <div class="scoring-section">
-                        <h3>评分</h3>
-                        <div class="scoring-box">
-                            <h4>AI评分 (20%)</h4>
-                            <div>
-                                <label>AI总分：</label>
-                                <input type="number" id="ai-score-1" class="score-input" min="0" max="100" readonly>
-                                <button type="button" onclick="performAIScoring(1)">AI评分</button>
+                    <!-- 最终得分显示 -->
+                    <div class="final-score-display">
+                        <div>最终得分：<span class="final-score" id="final-score-1">0</span></div>
+                        <div class="score-breakdown">
+                            <div class="score-item">
+                                <div class="score-value" id="ai-weighted-1">0</div>
+                                <div>AI (20%)</div>
                             </div>
-                            <div id="ai-score-details-1" style="margin-top: 10px;">
-                                <h5>评分详情：</h5>
-                                <p>理论知识：<span id="ai-theoretical-1">0</span>分</p>
-                                <p>实验设计：<span id="ai-design-1">0</span>分</p>
-                                <p>数据分析：<span id="ai-analysis-1">0</span>分</p>
-                                <p>结论总结：<span id="ai-conclusion-1">0</span>分</p>
-                                <p>创新性：<span id="ai-innovation-1">0</span>分</p>
+                            <div class="score-item">
+                                <div class="score-value" id="teacher-weighted-1">0</div>
+                                <div>教师 (30%)</div>
                             </div>
-                        </div>
-                        
-                        <div class="scoring-box">
-                            <h4>教师评分 (30%)</h4>
-                            <div>
-                                <label>教师得分：</label>
-                                <input type="number" id="teacher-score-1" class="score-input" min="0" max="100">
-                                <button type="button" onclick="saveTeacherScore(1)">保存评分</button>
+                            <div class="score-item">
+                                <div class="score-value" id="self-weighted-1">0</div>
+                                <div>自评 (10%)</div>
                             </div>
-                        </div>
-                        
-                        <div class="scoring-box">
-                            <h4>学生互评 (20%)</h4>
-                            <div>
-                                <label>你的评分：</label>
-                                <input type="number" id="student-score-1" class="score-input" min="0" max="100">
-                                <button type="button" onclick="saveStudentScore(1)">保存评分</button>
-                            </div>
-                            <div id="student-scores-display-1" style="margin-top: 10px;">
-                                <p>其他学生评分：</p>
-                            </div>
-                            <div style="margin-top: 10px;">
-                                <label>学生平均分：</label>
-                                <input type="number" id="student-average-1" class="score-input" min="0" max="100" readonly>
-                            </div>
-                        </div>
-                        
-                        <!-- 最终得分 -->
-                        <div class="score-display">
-                            <h3>最终得分</h3>
-                            <div class="score-value" id="final-score-1">0</div>
-                            <div class="score-breakdown">
-                                <div class="score-item">
-                                    <div class="score-value" id="ai-weighted-1">0</div>
-                                    <div>AI (50%)</div>
-                                </div>
-                                <div class="score-item">
-                                    <div class="score-value" id="teacher-weighted-1">0</div>
-                                    <div>教师 (30%)</div>
-                                </div>
-                                <div class="score-item">
-                                    <div class="score-value" id="student-weighted-1">0</div>
-                                    <div>学生 (20%)</div>
-                                </div>
+                            <div class="score-item">
+                                <div class="score-value" id="peer-weighted-1">0</div>
+                                <div>互评 (40%)</div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- 第2组到第8组的内容结构与第1组相同 -->
-                <!-- 为了简洁，这里省略了第2-8组的HTML结构，它们将在JavaScript中动态生成 -->
             </div>
         </div>
         
@@ -496,7 +555,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" onclick="closeRanking()">关闭</button>
+                    <button type="button" class="score-button" onclick="closeRanking()">关闭</button>
                 </div>
             </div>
         </div>
@@ -519,192 +578,200 @@
                         <p style="font-size: 16px; margin-top: 30px;">颁发日期：<span id="certificate-date"></span></p>
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
-                        <button type="button" onclick="downloadCertificate()">下载证书</button>
+                        <button type="button" class="score-button" onclick="downloadCertificate()">下载证书</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>    
+    
     <script>
-        // 全局变量
-        let currentUser = {
-            type: "",
-            group: ""
+        // Firebase配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyDeps30KjkP19CYwj8jMjC7y0-bhqAovNI",
+            authDomain: "physics-classroom-44e9a.firebaseapp.com",
+            projectId: "physics-classroom-44e9a",
+            storageBucket: "physics-classroom-44e9a.firebasestorage.app",
+            messagingSenderId: "901400536434",
+            appId: "1:901400536434:web:795f2010088a3c82d229eb",
+            measurementId: "G-VEY8JJH98B"
         };
         
-        // 初始化数据结构
+        // 初始化Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // 全局变量
+        let currentUser = null;
+        let groupData = {};
+        
+        // 初始化数据
         function initData() {
-            // 检查localStorage中是否已有数据
-            if (!localStorage.getItem('groupData')) {
-                // 创建初始数据结构
-                let initialData = {
-                    groups: {}
-                };
-                
-                // 初始化8个小组的数据
-                for (let i = 1; i <= 8; i++) {
-                    initialData.groups[i] = {
-                        report: null,
-                        video: null,
-                        scores: {
-                            ai: 0,
-                            aiDetails: {
-                                theoreticalKnowledge: 0,
-                                experimentalDesign: 0,
-                                dataAnalysis: 0,
-                                conclusion: 0,
-                                innovation: 0
-                            },
-                            teacher: 0,
-                            selfAssessment: 0,
-                            peerReviews: {},
-                            final: 0
-                        }
+            // 从Firebase获取数据
+            database.ref('groupData').once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    groupData = snapshot.val();
+                } else {
+                    // 初始化默认数据结构
+                    groupData = {
+                        groups: {}
                     };
+                    
+                    // 创建8个小组
+                    for (let i = 1; i <= 8; i++) {
+                        groupData.groups[i] = {
+                            report: null,
+                            video: null,
+                            scores: {
+                                ai: 0,
+                                aiDetails: {
+                                    theoreticalKnowledge: 0,
+                                    experimentalDesign: 0,
+                                    dataAnalysis: 0,
+                                    conclusion: 0,
+                                    innovation: 0
+                                },
+                                teacher: 0,
+                                selfAssessment: 0,
+                                peerReviews: {},
+                                final: 0
+                            }
+                        };
+                    }
+                    
+                    // 保存到Firebase
+                    database.ref('groupData').set(groupData);
                 }
                 
-                localStorage.setItem('groupData', JSON.stringify(initialData));
-            }
+                // 生成其他小组的内容
+                generateGroupContent();
+                
+                // 加载已有数据
+                loadData();
+            });
         }
         
-        // 登录功能
+        // 登录
         function login() {
             const userType = document.getElementById('user-type').value;
-            const groupNumber = document.getElementById('group-number').value;
+            const groupNumber = userType === 'group' ? document.getElementById('group-number').value : null;
             
-            // 设置当前用户信息
-            currentUser.type = userType;
-            currentUser.group = userType === 'group' ? groupNumber : 'teacher';
+            currentUser = {
+                type: userType,
+                name: userType === 'group' ? `第${groupNumber}组` : '教师',
+                group: groupNumber
+            };
             
-            // 保存登录状态
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            // 显示主内容
+            // 隐藏登录界面，显示主内容
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
             
             // 更新用户信息显示
-            document.getElementById('current-user-name').textContent = userType === 'group' ? `第${groupNumber}组` : '教师';
-            document.getElementById('current-user-type').textContent = userType === 'group' ? '小组' : '教师';
-            document.getElementById('current-group').textContent = userType === 'group' ? `第${groupNumber}组` : '教师账号';
+            document.getElementById('current-user-name').textContent = currentUser.name;
+            document.getElementById('current-user-type').textContent = currentUser.type === 'group' ? '小组' : '教师';
+            document.getElementById('current-group').textContent = currentUser.type === 'group' ? `第${currentUser.group}组` : '教师';
             
-            // 动态生成其他小组的内容
-            generateGroupContent();
-            
-            // 加载已有数据
-            loadData();
+            // 初始化数据
+            initData();
         }
         
         // 退出登录
         function logout() {
-            // 清除登录状态
-            localStorage.removeItem('currentUser');
-            
-            // 显示登录界面
+            currentUser = null;
             document.getElementById('login-section').style.display = 'block';
             document.getElementById('main-content').style.display = 'none';
-            
-            // 重置当前用户信息
-            currentUser = {
-                type: "",
-                group: ""
-            };
         }
         
-        // 生成小组内容
+        // 动态生成其他小组的内容
         function generateGroupContent() {
-            const container = document.getElementById('group-content-container');
+            const container = document.getElementById('main-content');
             
-            // 生成第2-8组的内容
+            // 生成2-8组的内容
             for (let i = 2; i <= 8; i++) {
+                // 创建小组内容区域
                 const groupContent = document.createElement('div');
                 groupContent.className = 'group-content';
                 groupContent.setAttribute('data-group', i);
                 
+                // 生成HTML内容
                 groupContent.innerHTML = `
-                    <h2>第${i}组 - 实验资料</h2>
-                    
-                    <!-- 文件上传 -->
+                    <!-- 文件上传区域 -->
                     <div class="file-upload-section">
-                        <label for="report-file-${i}">请上传项目报告文件（支持txt、pdf、doc、docx格式）</label>
-                        <input type="file" id="report-file-${i}" name="report-file-${i}" accept=".txt,.pdf,.doc,.docx">
-                        <button type="button" onclick="uploadReport(${i})")>上传报告</button>
+                        <h3>项目报告上传</h3>
+                        <div>
+                            <label for="report-file-${i}">选择报告文件（txt、pdf、doc、docx）：</label>
+                            <input type="file" id="report-file-${i}" accept=".txt,.pdf,.doc,.docx">
+                            <button class="score-button" onclick="uploadReport(${i})">上传报告</button>
+                        </div>
+                        <div id="report-info-${i}" style="margin-top: 10px;">暂无报告</div>
                     </div>
                     
-                    <!-- 视频上传 -->
                     <div class="file-upload-section">
-                        <label for="video-file-${i}">请上传实验成果视频（支持mp4、mov等格式）</label>
-                        <input type="file" id="video-file-${i}" name="video-file-${i}" accept="video/*">
-                        <button type="button" onclick="uploadVideo(${i})")>上传视频</button>
-                    </div>
-                    
-                    <!-- 材料展示 -->
-                    <div class="materials-display" id="materials-display-${i}">
-                        <h3>已上传材料</h3>
-                        <div id="report-display-${i}" class="material-item">
-                            <h4>实验报告</h4>
-                            <p id="report-info-${i}">暂无报告</p>
+                        <h3>项目演示视频上传</h3>
+                        <div>
+                            <label for="video-file-${i}">选择视频文件：</label>
+                            <input type="file" id="video-file-${i}" accept="video/*">
+                            <button class="score-button" onclick="uploadVideo(${i})">上传视频</button>
                         </div>
-                        <div id="video-display-${i}" class="material-item">
-                            <h4>实验成果视频</h4>
-                            <div id="video-preview-${i}" class="material-preview">暂无视频</div>
-                        </div>
+                        <div id="video-preview-${i}" style="margin-top: 10px;">暂无视频</div>
                     </div>
                     
                     <!-- 评分区域 -->
                     <div class="scoring-section">
-                        <h3>评分</h3>
-                        <div class="scoring-box">
-                            <h4>AI评分 (50%)</h4>
-                            <div>
-                                <label>AI得分：</label>
-                                <input type="number" id="ai-score-${i}" class="score-input" min="0" max="100" readonly>
-                                <button type="button" onclick="performAIScoring(${i})")>AI评分</button>
-                            </div>
+                        <h3>项目评分</h3>
+                        
+                        <!-- AI评分 -->
+                        <div class="score-input-group">
+                            <label>AI评分 (20%)：</label>
+                            <input type="number" id="ai-score-${i}" readonly>
+                            <button class="score-button" onclick="performAIScoring(${i})">生成AI评分</button>
+                            <div id="ai-score-details-${i}" class="ai-details" style="margin-top: 10px;"></div>
                         </div>
                         
-                        <div class="scoring-box">
-                            <h4>教师评分 (30%)</h4>
-                            <div>
-                                <label>教师得分：</label>
-                                <input type="number" id="teacher-score-${i}" class="score-input" min="0" max="100">
-                                <button type="button" onclick="saveTeacherScore(${i})")>保存评分</button>
-                            </div>
+                        <!-- 教师评分 -->
+                        <div class="score-input-group">
+                            <label>教师评分 (30%)：</label>
+                            <input type="number" id="teacher-score-${i}" min="0" max="100" placeholder="0-100">
+                            <button class="score-button" onclick="saveTeacherScore(${i})">保存教师评分</button>
                         </div>
                         
-                        <div class="scoring-box">
-                            <h4>学生互评 (20%)</h4>
-                            <div>
-                                <label>你的评分：</label>
-                                <input type="number" id="student-score-${i}" class="score-input" min="0" max="100">
-                                <button type="button" onclick="saveStudentScore(${i})")>保存评分</button>
-                            </div>
-                            <div id="student-scores-display-${i}" style="margin-top: 10px;">
-                                <p>其他学生评分：</p>
-                            </div>
+                        <!-- 小组自评 -->
+                        <div class="score-input-group">
+                            <label>小组自评 (10%)：</label>
+                            <input type="number" id="self-score-${i}" min="0" max="100" placeholder="0-100">
+                            <button class="score-button" onclick="saveSelfAssessment(${i})">保存自评</button>
+                        </div>
+                        
+                        <!-- 组间互评 -->
+                        <div class="score-input-group">
+                            <label>组间互评 (40%)：</label>
+                            <input type="number" id="peer-score-${i}" min="0" max="100" placeholder="0-100">
+                            <button class="score-button" onclick="savePeerReview(${i})">保存互评</button>
                             <div style="margin-top: 10px;">
-                                <label>学生平均分：</label>
-                                <input type="number" id="student-average-${i}" class="score-input" min="0" max="100" readonly>
+                                <label>组间互评平均分：</label>
+                                <input type="number" id="peer-average-${i}" readonly>
                             </div>
                         </div>
                         
-                        <!-- 最终得分 -->
-                        <div class="score-display">
-                            <h3>最终得分</h3>
-                            <div class="score-value" id="final-score-${i}">0</div>
+                        <!-- 最终得分显示 -->
+                        <div class="final-score-display">
+                            <div>最终得分：<span class="final-score" id="final-score-${i}">0</span></div>
                             <div class="score-breakdown">
                                 <div class="score-item">
                                     <div class="score-value" id="ai-weighted-${i}">0</div>
-                                    <div>AI (50%)</div>
+                                    <div>AI (20%)</div>
                                 </div>
                                 <div class="score-item">
                                     <div class="score-value" id="teacher-weighted-${i}">0</div>
                                     <div>教师 (30%)</div>
                                 </div>
                                 <div class="score-item">
-                                    <div class="score-value" id="student-weighted-${i}">0</div>
-                                    <div>学生 (20%)</div>
+                                    <div class="score-value" id="self-weighted-${i}">0</div>
+                                    <div>自评 (10%)</div>
+                                </div>
+                                <div class="score-item">
+                                    <div class="score-value" id="peer-weighted-${i}">0</div>
+                                    <div>互评 (40%)</div>
                                 </div>
                             </div>
                         </div>
@@ -714,47 +781,6 @@
                 container.appendChild(groupContent);
             }
         }
-        
-        // 小组标签切换
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化数据
-            initData();
-            
-            // 检查是否已有登录状态
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                
-                // 更新用户信息显示
-                document.getElementById('current-user-name').textContent = currentUser.name;
-                document.getElementById('current-user-type').textContent = currentUser.type === 'student' ? '学生' : '教师';
-                document.getElementById('current-group').textContent = `第${currentUser.group}组`;
-                
-                // 动态生成其他小组的内容
-                generateGroupContent();
-                
-                // 加载已有数据
-                loadData();
-            }
-            
-            // 小组标签点击事件
-            const groupTabs = document.querySelectorAll('.group-tab');
-            groupTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const groupNumber = this.getAttribute('data-group');
-                    
-                    // 移除所有活动状态
-                    groupTabs.forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.group-content').forEach(c => c.classList.remove('active'));
-                    
-                    // 添加当前活动状态
-                    this.classList.add('active');
-                    document.querySelector(`.group-content[data-group="${groupNumber}"]`).classList.add('active');
-                });
-            });
-        });
         
         // 上传报告
         function uploadReport(groupNumber) {
@@ -774,21 +800,26 @@
                 return;
             }
             
-            // 保存文件信息（实际项目中应上传到服务器，这里使用localStorage模拟）
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            data.groups[groupNumber].report = {
-                name: file.name,
-                type: file.type,
-                size: file.size
+            // 读取文件内容
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // 保存文件信息
+                groupData.groups[groupNumber].report = {
+                    name: file.name,
+                    type: file.type,
+                    content: e.target.result,
+                    size: file.size
+                };
+                
+                // 保存到Firebase
+                database.ref('groupData').set(groupData);
+                
+                // 更新界面
+                displayReport(groupNumber);
+                
+                alert('报告上传成功');
             };
-            
-            // 保存到localStorage
-            localStorage.setItem('groupData', JSON.stringify(data));
-            
-            // 更新界面
-            displayReport(groupNumber);
-            
-            alert('报告上传成功');
+            reader.readAsDataURL(file);
         }
         
         // 上传视频
@@ -801,25 +832,24 @@
                 return;
             }
             
-            // 检查文件类型
-            if (!file.type.startsWith('video/')) {
-                alert('请上传视频文件');
+            // 检查文件大小（限制50MB）
+            if (file.size > 50 * 1024 * 1024) {
+                alert('视频文件不能超过50MB');
                 return;
             }
             
-            // 创建视频预览
+            // 读取视频文件
             const reader = new FileReader();
             reader.onload = function(e) {
                 // 保存视频信息
-                const data = JSON.parse(localStorage.getItem('groupData'));
-                data.groups[groupNumber].video = {
+                groupData.groups[groupNumber].video = {
                     name: file.name,
                     type: file.type,
                     data: e.target.result
                 };
                 
-                // 保存到localStorage
-                localStorage.setItem('groupData', JSON.stringify(data));
+                // 保存到Firebase
+                database.ref('groupData').set(groupData);
                 
                 // 更新界面
                 displayVideo(groupNumber);
@@ -831,9 +861,7 @@
         
         // 显示报告信息
         function displayReport(groupNumber) {
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            const report = data.groups[groupNumber].report;
-            
+            const report = groupData.groups[groupNumber].report;
             const reportInfo = document.getElementById(`report-info-${groupNumber}`);
             
             if (report) {
@@ -845,9 +873,7 @@
         
         // 显示视频
         function displayVideo(groupNumber) {
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            const video = data.groups[groupNumber].video;
-            
+            const video = groupData.groups[groupNumber].video;
             const videoPreview = document.getElementById(`video-preview-${groupNumber}`);
             
             if (video) {
@@ -865,9 +891,6 @@
         
         // AI评分
         function performAIScoring(groupNumber) {
-            // 获取当前数据
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            
             // 生成各评分细则的随机分数（85-100分）
             const aiDetails = {
                 theoreticalKnowledge: Math.floor(Math.random() * 16) + 85,
@@ -886,9 +909,12 @@
                  aiDetails.innovation) / 5
             );
             
-            // 保存AI评分
-            data.groups[groupNumber].scores.ai = aiScore;
-            data.groups[groupNumber].scores.aiDetails = aiDetails;
+            // 更新数据
+            groupData.groups[groupNumber].scores.ai = aiScore;
+            groupData.groups[groupNumber].scores.aiDetails = aiDetails;
+            
+            // 保存到Firebase
+            database.ref('groupData').set(groupData);
             
             // 更新界面
             document.getElementById(`ai-score-${groupNumber}`).value = aiScore;
@@ -897,23 +923,19 @@
             const detailsContainer = document.getElementById(`ai-score-details-${groupNumber}`);
             if (detailsContainer) {
                 detailsContainer.innerHTML = `
-                    <h5>评分详情：</h5>
-                    <p>理论知识：<span id="ai-theoretical-${groupNumber}">${aiDetails.theoreticalKnowledge}</span>分</p>
-                    <p>实验设计：<span id="ai-design-${groupNumber}">${aiDetails.experimentalDesign}</span>分</p>
-                    <p>数据分析：<span id="ai-analysis-${groupNumber}">${aiDetails.dataAnalysis}</span>分</p>
-                    <p>结论总结：<span id="ai-conclusion-${groupNumber}">${aiDetails.conclusion}</span>分</p>
-                    <p>创新性：<span id="ai-innovation-${groupNumber}">${aiDetails.innovation}</span>分</p>
+                    <p>理论知识：${aiDetails.theoreticalKnowledge}分</p>
+                    <p>实验设计：${aiDetails.experimentalDesign}分</p>
+                    <p>数据分析：${aiDetails.dataAnalysis}分</p>
+                    <p>结论总结：${aiDetails.conclusion}分</p>
+                    <p>创新性：${aiDetails.innovation}分</p>
                 `;
             }
             
             // 计算最终得分
-            calculateFinalScore(groupNumber, data);
-            
-            // 保存到localStorage
-            localStorage.setItem('groupData', JSON.stringify(data));
+            calculateFinalScore(groupNumber);
             
             // 更新最终得分显示
-            updateScoreDisplay(groupNumber, data);
+            updateScoreDisplay(groupNumber);
             
             alert('AI评分完成');
         }
@@ -934,17 +956,16 @@
             }
             
             // 保存教师评分
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            data.groups[groupNumber].scores.teacher = teacherScore;
+            groupData.groups[groupNumber].scores.teacher = teacherScore;
             
-            // 更新最终得分
-            calculateFinalScore(groupNumber, data);
+            // 保存到Firebase
+            database.ref('groupData').set(groupData);
             
-            // 保存到localStorage
-            localStorage.setItem('groupData', JSON.stringify(data));
+            // 计算最终得分
+            calculateFinalScore(groupNumber);
             
             // 更新界面
-            updateScoreDisplay(groupNumber, data);
+            updateScoreDisplay(groupNumber);
             
             alert('教师评分保存成功');
         }
@@ -963,30 +984,26 @@
                 return;
             }
             
-            // 获取当前数据
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            
             // 保存自评分数
-            data.groups[groupNumber].scores.selfAssessment = parseFloat(selfScore);
+            groupData.groups[groupNumber].scores.selfAssessment = parseFloat(selfScore);
             
-            // 保存数据
-            localStorage.setItem('groupData', JSON.stringify(data));
+            // 保存到Firebase
+            database.ref('groupData').set(groupData);
             
             // 计算最终得分
-            calculateFinalScore(groupNumber, data);
-            
-            // 保存最终数据
-            localStorage.setItem('groupData', JSON.stringify(data));
+            calculateFinalScore(groupNumber);
             
             // 更新最终得分显示
-            updateScoreDisplay(groupNumber, data);
+            updateScoreDisplay(groupNumber);
+            
+            alert('自评保存成功');
         }
         
         // 保存组间互评
         function savePeerReview(groupNumber) {
-            // 小组不能评价自己
-            if (currentUser.type === 'group' && currentUser.group === groupNumber) {
-                alert('小组不能评价自己');
+            // 小组可以对自己和其他小组打分
+            if (currentUser.type !== 'group') {
+                alert('只有小组可以进行互评');
                 return;
             }
             
@@ -996,23 +1013,20 @@
                 return;
             }
             
-            // 获取当前数据
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            
             // 保存互评分数
-            if (!data.groups[groupNumber].scores.peerReviews) {
-                data.groups[groupNumber].scores.peerReviews = {};
+            if (!groupData.groups[groupNumber].scores.peerReviews) {
+                groupData.groups[groupNumber].scores.peerReviews = {};
             }
             
             // 使用组名作为评价者标识
-            const reviewer = currentUser.type === 'group' ? `group${currentUser.group}` : 'teacher';
-            data.groups[groupNumber].scores.peerReviews[reviewer] = parseFloat(peerScore);
+            const reviewer = `group${currentUser.group}`;
+            groupData.groups[groupNumber].scores.peerReviews[reviewer] = parseFloat(peerScore);
             
-            // 保存数据
-            localStorage.setItem('groupData', JSON.stringify(data));
+            // 保存到Firebase
+            database.ref('groupData').set(groupData);
             
             // 计算组间平均分数
-            const peerScores = Object.values(data.groups[groupNumber].scores.peerReviews);
+            const peerScores = Object.values(groupData.groups[groupNumber].scores.peerReviews);
             const peerAverage = peerScores.length > 0 ? 
                 peerScores.reduce((sum, score) => sum + score, 0) / peerScores.length : 0;
             
@@ -1020,22 +1034,17 @@
             document.getElementById(`peer-average-${groupNumber}`).value = peerAverage.toFixed(1);
             
             // 计算最终得分
-            calculateFinalScore(groupNumber, data);
-            
-            // 保存最终数据
-            localStorage.setItem('groupData', JSON.stringify(data));
+            calculateFinalScore(groupNumber);
             
             // 更新最终得分显示
-            updateScoreDisplay(groupNumber, data);
+            updateScoreDisplay(groupNumber);
+            
+            alert('互评保存成功');
         }
         
         // 计算最终得分
-        function calculateFinalScore(groupNumber, data = null) {
-            if (!data) {
-                data = JSON.parse(localStorage.getItem('groupData'));
-            }
-            
-            const scores = data.groups[groupNumber].scores;
+        function calculateFinalScore(groupNumber) {
+            const scores = groupData.groups[groupNumber].scores;
             
             // 计算组间互评平均分
             const peerScores = Object.values(scores.peerReviews || {});
@@ -1049,42 +1058,15 @@
                               (peerAverage * 0.4);
             
             // 保存最终得分
-            data.groups[groupNumber].scores.final = Math.round(finalScore);
-        }
-        
-        // 显示学生评分
-        function displayStudentScores(groupNumber, data = null) {
-            if (!data) {
-                data = JSON.parse(localStorage.getItem('groupData'));
-            }
+            groupData.groups[groupNumber].scores.final = Math.round(finalScore);
             
-            const studentScores = data.groups[groupNumber].scores.students;
-            const displayContainer = document.getElementById(`student-scores-display-${groupNumber}`);
-            
-            let html = '<p>其他学生评分：</p>';
-            if (Object.keys(studentScores).length === 0) {
-                html += '<p>暂无学生评分</p>';
-            } else {
-                Object.keys(studentScores).forEach(studentName => {
-                    html += `<p>${studentName}：${studentScores[studentName]}分</p>`;
-                });
-            }
-            
-            // 计算学生平均分
-            const studentAverage = Object.values(studentScores).length > 0 ? 
-                Object.values(studentScores).reduce((sum, score) => sum + score, 0) / Object.values(studentScores).length : 0;
-            
-            displayContainer.innerHTML = html;
-            document.getElementById(`student-average-${groupNumber}`).value = Math.round(studentAverage);
+            // 保存到Firebase
+            database.ref('groupData').set(groupData);
         }
         
         // 更新评分显示
-        function updateScoreDisplay(groupNumber, data = null) {
-            if (!data) {
-                data = JSON.parse(localStorage.getItem('groupData'));
-            }
-            
-            const scores = data.groups[groupNumber].scores;
+        function updateScoreDisplay(groupNumber) {
+            const scores = groupData.groups[groupNumber].scores;
             
             // 计算组间互评平均分
             const peerScores = Object.values(scores.peerReviews || {});
@@ -1101,31 +1083,56 @@
         
         // 加载数据
         function loadData() {
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            
-            for (let i = 1; i <= 8; i++) {
-                // 显示报告
-                displayReport(i);
-                
-                // 显示视频
-                displayVideo(i);
-                
-                // 更新评分
-                document.getElementById(`ai-score-${i}`).value = data.groups[i].scores.ai;
-                document.getElementById(`teacher-score-${i}`).value = data.groups[i].scores.teacher;
-                
-                // 显示学生评分
-                displayStudentScores(i, data);
-                
-                // 更新最终得分显示
-                updateScoreDisplay(i, data);
+            for (let groupNumber in groupData.groups) {
+                if (groupData.groups.hasOwnProperty(groupNumber)) {
+                    const group = groupData.groups[groupNumber];
+                    
+                    // 更新AI评分显示
+                    if (group.scores.ai > 0) {
+                        document.getElementById(`ai-score-${groupNumber}`).value = group.scores.ai;
+                        
+                        // 显示评分细则
+                        const detailsContainer = document.getElementById(`ai-score-details-${groupNumber}`);
+                        if (detailsContainer) {
+                            detailsContainer.innerHTML = `
+                                <p>理论知识：${group.scores.aiDetails.theoreticalKnowledge}分</p>
+                                <p>实验设计：${group.scores.aiDetails.experimentalDesign}分</p>
+                                <p>数据分析：${group.scores.aiDetails.dataAnalysis}分</p>
+                                <p>结论总结：${group.scores.aiDetails.conclusion}分</p>
+                                <p>创新性：${group.scores.aiDetails.innovation}分</p>
+                            `;
+                        }
+                    }
+                    
+                    // 更新教师评分显示
+                    if (group.scores.teacher > 0) {
+                        document.getElementById(`teacher-score-${groupNumber}`).value = group.scores.teacher;
+                    }
+                    
+                    // 更新自评显示
+                    if (group.scores.selfAssessment > 0) {
+                        document.getElementById(`self-score-${groupNumber}`).value = group.scores.selfAssessment;
+                    }
+                    
+                    // 更新互评平均分显示
+                    const peerScores = Object.values(group.scores.peerReviews || {});
+                    const peerAverage = peerScores.length > 0 ? 
+                        peerScores.reduce((sum, score) => sum + score, 0) / peerScores.length : 0;
+                    document.getElementById(`peer-average-${groupNumber}`).value = peerAverage.toFixed(1);
+                    
+                    // 更新最终得分显示
+                    updateScoreDisplay(groupNumber);
+                    
+                    // 更新文件显示
+                    displayReport(groupNumber);
+                    displayVideo(groupNumber);
+                }
             }
         }
         
         // 显示排名
         function showRanking() {
-            const data = JSON.parse(localStorage.getItem('groupData'));
-            const groups = data.groups;
+            const groups = groupData.groups;
             
             // 计算每个小组的最终得分并排序
             const groupScores = [];
@@ -1160,7 +1167,7 @@
                     <td>第${group.groupNumber}组</td>
                     <td>${group.finalScore}</td>
                     <td>
-                        ${rank <= 3 ? `<button type="button" onclick="showCertificate(${rank}, ${group.groupNumber})">生成证书</button>` : '-'}
+                        ${rank <= 3 ? `<button type="button" class="score-button" onclick="showCertificate(${rank}, ${group.groupNumber})">生成证书</button>` : '-'}
                     </td>
                 `;
                 
@@ -1195,10 +1202,6 @@
         
         // 下载证书
         function downloadCertificate() {
-            const certificate = document.getElementById('certificate-container');
-            
-            // 使用html2canvas将证书转换为图片（需要html2canvas库支持）
-            // 这里使用简单的方式生成文本证书
             const group = document.getElementById('certificate-group').textContent;
             const rank = document.getElementById('certificate-rank').textContent;
             const date = document.getElementById('certificate-date').textContent;
@@ -1234,6 +1237,31 @@ ${rank}
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
+        
+        // 页面加载完成事件
+        document.addEventListener('DOMContentLoaded', function() {
+            // 监听用户类型选择变化
+            document.getElementById('user-type').addEventListener('change', function() {
+                const userType = this.value;
+                document.getElementById('group-select').style.display = userType === 'group' ? 'block' : 'none';
+            });
+            
+            // 小组标签点击事件
+            const groupTabs = document.querySelectorAll('.group-tab');
+            groupTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const groupNumber = this.getAttribute('data-group');
+                    
+                    // 移除所有活动状态
+                    groupTabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.group-content').forEach(c => c.classList.remove('active'));
+                    
+                    // 添加当前活动状态
+                    this.classList.add('active');
+                    document.querySelector(`.group-content[data-group="${groupNumber}"]`).classList.add('active');
+                });
+            });
+        });
     </script>
 </body>
 </html>
