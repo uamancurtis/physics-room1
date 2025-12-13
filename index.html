@@ -4,75 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>跨学科项目学习智能评估系统</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- 登录界面 -->
-    <div id="login-container" class="container">
-        <h1>跨学科项目学习智能评估系统</h1>
-        <div class="login-form">
-            <select id="user-type">
-                <option value="group">小组</option>
-                <option value="teacher">教师</option>
-            </select>
-            <select id="group-number" class="group-select">
-                <option value="">选择组号</option>
-                <option value="1">小组1</option>
-                <option value="2">小组2</option>
-                <option value="3">小组3</option>
-                <option value="4">小组4</option>
-                <option value="5">小组5</option>
-                <option value="6">小组6</option>
-                <option value="7">小组7</option>
-                <option value="8">小组8</option>
-            </select>
-            <button id="login-btn">登录</button>
-        </div>
-    </div>
-
-    <!-- 系统主界面 -->
-    <div id="main-container" class="container" style="display: none;">
-        <header>
+    <div id="app">
+        <!-- 登录页面 -->
+        <div id="loginPage" class="page active">
             <h1>跨学科项目学习智能评估系统</h1>
-            <div class="user-info">
-                <span id="current-user"></span>
-                <button id="logout-btn">退出登录</button>
-            </div>
-        </header>
-
-        <nav>
-            <button class="nav-btn active" data-tab="upload">材料上传</button>
-            <button class="nav-btn" data-tab="score">评分管理</button>
-            <button class="nav-btn" data-tab="rank">排名展示</button>
-            <button class="nav-btn" data-tab="certificate">奖状申请</button>
-        </nav>
-
-        <main>
-            <!-- 材料上传模块 -->
-            <div id="upload-tab" class="tab-content active">
-                <h2>材料上传</h2>
-                <div class="upload-section">
-                    <h3>项目报告上传</h3>
-                    <input type="file" id="report-upload" accept=".txt,.doc,.docx,.pdf">
-                    <button id="upload-report-btn">上传报告</button>
+            <div class="login-container">
+                <div class="form-group">
+                    <label for="role">角色选择</label>
+                    <select id="role">
+                        <option value="group">小组</option>
+                        <option value="teacher">教师</option>
+                    </select>
                 </div>
-                <div class="upload-section">
-                    <h3>实验视频上传</h3>
-                    <input type="file" id="video-upload" accept=".mp4">
-                    <button id="upload-video-btn">上传视频</button>
-                </div>
-                
-                <h3>所有小组材料</h3>
-                <div id="all-materials"></div>
-            </div>
-
-            <!-- 评分管理模块 -->
-            <div id="score-tab" class="tab-content">
-                <h2>评分管理</h2>
-                <div class="score-section">
-                    <h3>选择评分对象</h3>
-                    <select id="score-target">
-                        <option value="">选择小组</option>
+                <div class="form-group" id="groupSelectContainer">
+                    <label for="groupNumber">小组编号</label>
+                    <select id="groupNumber">
                         <option value="1">小组1</option>
                         <option value="2">小组2</option>
                         <option value="3">小组3</option>
@@ -82,53 +31,230 @@
                         <option value="7">小组7</option>
                         <option value="8">小组8</option>
                     </select>
-                    <button id="ai-score-btn">AI评分</button>
                 </div>
-                
-                <div id="ai-score-result" class="score-result"></div>
-                
-                <div id="manual-score-form" class="score-form">
-                    <h3>手动评分</h3>
-                    <div class="score-item">
-                        <label>创新性：</label>
-                        <input type="number" class="score-input" min="0" max="100" step="1">
-                    </div>
-                    <div class="score-item">
-                        <label>科学性：</label>
-                        <input type="number" class="score-input" min="0" max="100" step="1">
-                    </div>
-                    <div class="score-item">
-                        <label>实用性：</label>
-                        <input type="number" class="score-input" min="0" max="100" step="1">
-                    </div>
-                    <div class="score-item">
-                        <label>完整性：</label>
-                        <input type="number" class="score-input" min="0" max="100" step="1">
-                    </div>
-                    <div class="score-item">
-                        <label>表达清晰：</label>
-                        <input type="number" class="score-input" min="0" max="100" step="1">
-                    </div>
-                    <button id="submit-score-btn">提交评分</button>
+                <button id="loginBtn">登录</button>
+            </div>
+        </div>
+
+        <!-- 主页面 -->
+        <div id="mainPage" class="page">
+            <header>
+                <h2>跨学科项目学习智能评估系统</h2>
+                <div class="user-info">
+                    <span id="currentUser"></span>
+                    <button id="logoutBtn">退出登录</button>
                 </div>
-                
-                <div id="all-scores" class="score-summary"></div>
+            </header>
+
+            <nav>
+                <button class="nav-btn active" data-page="upload">上传材料</button>
+                <button class="nav-btn" data-page="view">查看材料</button>
+                <button class="nav-btn" data-page="score">评分</button>
+                <button class="nav-btn" data-page="ranking">排名</button>
+            </nav>
+
+            <!-- 上传材料页面 -->
+            <div id="uploadPage" class="content-page active">
+                <h3>上传项目材料</h3>
+                <div class="upload-form">
+                    <div class="form-group">
+                        <label for="reportFile">项目报告</label>
+                        <input type="file" id="reportFile" accept=".txt,.doc,.docx,.pdf">
+                        <p class="hint">支持格式：txt, doc, docx, pdf，大小不超过100M</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="videoFile">实验视频</label>
+                        <input type="file" id="videoFile" accept=".mp4">
+                        <p class="hint">支持格式：mp4，大小不超过100M</p>
+                    </div>
+                    <button id="uploadBtn">上传</button>
+                    <button id="uploadAIScoreBtn" style="margin-left: 10px;">生成AI评分</button>
+                    <div id="aiScoringProcess" class="ai-process"></div>
+                </div>
             </div>
 
-            <!-- 排名展示模块 -->
-            <div id="rank-tab" class="tab-content">
-                <h2>实时排名</h2>
-                <div id="ranking-list" class="ranking-list"></div>
+            <!-- 查看材料页面 -->
+            <div id="viewPage" class="content-page">
+                <h3>查看各小组材料</h3>
+                <div class="group-selector">
+                    <select id="viewGroupSelect">
+                        <option value="all">所有小组</option>
+                        <option value="1">小组1</option>
+                        <option value="2">小组2</option>
+                        <option value="3">小组3</option>
+                        <option value="4">小组4</option>
+                        <option value="5">小组5</option>
+                        <option value="6">小组6</option>
+                        <option value="7">小组7</option>
+                        <option value="8">小组8</option>
+                    </select>
+                </div>
+                <div id="materialsList"></div>
             </div>
 
-            <!-- 奖状申请模块 -->
-            <div id="certificate-tab" class="tab-content">
-                <h2>奖状申请</h2>
-                <div id="certificate-info"></div>
-                <button id="apply-certificate-btn" disabled>申请奖状</button>
-                <div id="certificate-preview"></div>
+            <!-- 评分页面 -->
+            <div id="scorePage" class="content-page">
+                <h3>评分</h3>
+                <div class="score-tabs">
+                    <button class="score-tab active" data-tab="self">小组自评 (10%)</button>
+                    <button class="score-tab" data-tab="peer">小组互评 (40%)</button>
+                    <button class="score-tab" data-tab="teacher" id="teacherScoreTab" style="display: none;">教师评分 (30%)</button>
+                </div>
+
+                <!-- 小组自评 -->
+                <div id="selfScoreTab" class="score-tab-content active">
+                    <div class="score-display">
+                        <h4>AI评分（权重20%）</h4>
+                        <div id="selfAIScoreDisplay"></div>
+                        <h4>教师评分（权重30%）</h4>
+                        <div id="selfTeacherScoreDisplay"></div>
+                    </div>
+                    <div class="score-form">
+                        <h4>小组自评（权重10%）</h4>
+                        <div class="score-item">
+                            <label>项目创新性</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="innovation">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>技术实现</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="technical">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>实验设计</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="experiment">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>成果展示</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="presentation">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>团队合作</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="collaboration">
+                            <span class="score-value">50</span>
+                        </div>
+                        <button id="saveSelfScoreBtn">保存自评</button>
+                    </div>
+                </div>
+
+                <!-- 小组互评 -->
+                <div id="peerScoreTab" class="score-tab-content">
+                    <div class="form-group">
+                        <label for="peerGroupSelect">选择评分小组</label>
+                        <select id="peerGroupSelect">
+                            <option value="1">小组1</option>
+                            <option value="2">小组2</option>
+                            <option value="3">小组3</option>
+                            <option value="4">小组4</option>
+                            <option value="5">小组5</option>
+                            <option value="6">小组6</option>
+                            <option value="7">小组7</option>
+                            <option value="8">小组8</option>
+                        </select>
+                    </div>
+                    <div class="score-display">
+                        <h4>AI评分（权重20%）</h4>
+                        <div id="peerAIScoreDisplay"></div>
+                        <h4>教师评分（权重30%）</h4>
+                        <div id="peerTeacherScoreDisplay"></div>
+                    </div>
+                    <div class="score-form">
+                        <h4>小组互评（权重40%）</h4>
+                        <div class="score-item">
+                            <label>项目创新性</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="innovation">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>技术实现</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="technical">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>实验设计</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="experiment">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>成果展示</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="presentation">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>团队合作</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="collaboration">
+                            <span class="score-value">50</span>
+                        </div>
+                        <button id="savePeerScoreBtn">保存互评</button>
+                    </div>
+                </div>
+
+                <!-- 教师评分 -->
+                <div id="teacherScoreTab" class="score-tab-content">
+                    <div class="form-group">
+                        <label for="teacherGroupSelect">选择评分小组</label>
+                        <select id="teacherGroupSelect">
+                            <option value="1">小组1</option>
+                            <option value="2">小组2</option>
+                            <option value="3">小组3</option>
+                            <option value="4">小组4</option>
+                            <option value="5">小组5</option>
+                            <option value="6">小组6</option>
+                            <option value="7">小组7</option>
+                            <option value="8">小组8</option>
+                        </select>
+                    </div>
+                    <div class="score-form">
+                        <h4>教师评分（权重30%）</h4>
+                        <div class="score-item">
+                            <label>项目创新性</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="innovation">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>技术实现</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="technical">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>实验设计</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="experiment">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>成果展示</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="presentation">
+                            <span class="score-value">50</span>
+                        </div>
+                        <div class="score-item">
+                            <label>团队合作</label>
+                            <input type="range" min="0" max="100" class="score-range" data-category="collaboration">
+                            <span class="score-value">50</span>
+                        </div>
+                        <button id="saveTeacherScoreBtn">保存评分</button>
+                    </div>
+                    <div class="ai-score-section">
+                        <h4>AI评分（权重20%）</h4>
+                        <button id="generateAIScoreBtn">生成AI评分</button>
+                        <div id="aiScoreResult" class="ai-score-result"></div>
+                    </div>
+                </div>
             </div>
-        </main>
+
+            <!-- 排名页面 -->
+            <div id="rankingPage" class="content-page">
+                <h3>实时排名</h3>
+                <div id="rankingList"></div>
+                <div id="certificateSection" style="display: none;">
+                    <h4>申请奖状</h4>
+                    <button id="applyCertificateBtn">申请奖状</button>
+                    <div id="certificatePreview"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
